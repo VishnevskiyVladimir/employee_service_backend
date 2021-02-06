@@ -1,0 +1,8 @@
+create table employee (
+    id bigserial primary key,
+    first_name varchar(128) ,
+    last_name varchar(128),
+    email_id varchar(128),
+    unique (first_name,last_name)
+
+);
