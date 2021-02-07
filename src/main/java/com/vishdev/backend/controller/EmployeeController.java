@@ -28,12 +28,13 @@ public class EmployeeController {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee with id "+ id + "is not found."));
     }
 
-//    @PostMapping()
-//    public Employee returnEmployeeById (@RequestParam) {
-//        return employeeRepository
-//                .findById(id)
-//                .orElse(new Employee("1","2","3"));
-//
-//    }
+
+    //TODO: изменить код ответа на 201 Created. And change 500 to Already exists. probably ResponseEntity is needed
+    @PostMapping("employees")
+    public Employee addEmployee (@RequestBody Employee employee) {
+        return employeeRepository
+                .save(employee);
+
+    }
 
 }
