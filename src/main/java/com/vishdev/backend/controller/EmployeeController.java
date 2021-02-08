@@ -4,6 +4,8 @@ import com.vishdev.backend.exception.ResourceNotFoundException;
 import com.vishdev.backend.model.Employee;
 import com.vishdev.backend.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +17,9 @@ public class EmployeeController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    //TODO: check statuses of all methods (look JSON API and Over...(German girl))
+    //TODO: what if db is dropped
+    //TODO: no content status 204
     @GetMapping("employees")
     public List<Employee> returnAllEmployees () {
         return employeeRepository
@@ -22,19 +27,56 @@ public class EmployeeController {
     }
 
     @GetMapping("employees/{id}")
-    public Employee returnEmployeeById (@PathVariable long id) throws ResourceNotFoundException{
-        return employeeRepository
+    public ResponseEntity<Employee> returnEmployeeById (@PathVariable long id) throws ResourceNotFoundException{
+        Employee employeeFromRepo = employeeRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee with id "+ id + "is not found."));
+        return new ResponseEntity<>(employeeFromRepo, HttpStatus.OK);
     }
 
 
-    //TODO: изменить код ответа на 201 Created. And change 500 to Already exists. probably ResponseEntity is needed
+    //TODO: if already exists or constraints violated
     @PostMapping("employees")
-    public Employee addEmployee (@RequestBody Employee employee) {
-        return employeeRepository
-                .save(employee);
+    public ResponseEntity<Employee> addEmployee (@RequestBody Employee employeeRequestBody) {
+        Employee employeeFromRepo;
+        try {
+            employeeFromRepo = employeeRepository
+                    .save(employeeRequestBody);
+        } catch (Throwable e) {
+            //e.printStackTrace();
+            throw new RuntimeException();
+        }
+        return new ResponseEntity<>(employeeFromRepo, HttpStatus.CREATED);
+    }
 
+    //TODO: if already exists or constraints violated
+    @PutMapping("employees/{id}")
+    public ResponseEntity<Employee> changeEmployeeById (@PathVariable long id,@RequestBody Employee employeeRequestBody ) throws ResourceNotFoundException{
+        Employee employeeFromRepo = employeeRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee with id "+ id + "is not found."));
+
+        employeeFromRepo.setFirstName(employeeRequestBody.getFirstName());
+        employeeFromRepo.setLastName(employeeRequestBody.getLastName());
+        employeeFromRepo.setEmailId(employeeRequestBody.getEmailId());
+
+        try {
+            employeeFromRepo = employeeRepository
+                    .save(employeeFromRepo);
+        } catch (Throwable e) {
+            //e.printStackTrace();
+            throw new RuntimeException();
+        }
+
+        return new ResponseEntity<>(employeeFromRepo, HttpStatus.OK);
+    }
+
+    @DeleteMapping("employees/{id}")
+    public void deleteEmployeeById (@PathVariable long id) throws ResourceNotFoundException{
+        Employee employeeFromRepo = employeeRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee with id "+ id + "is not found."));
+        employeeRepository.delete(employeeFromRepo);
     }
 
 }
